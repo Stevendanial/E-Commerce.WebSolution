@@ -1,5 +1,8 @@
 
+using E_Commerce.Domain.Contracts;
+using E_Commerce.Persistence.Data.DataSeeding;
 using E_Commerce.Persistence.Data.DbContexts;
+using E_Commerce.Web.Extenstion;
 using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce.Web
@@ -16,7 +19,7 @@ namespace E_Commerce.Web
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            builder.Services.AddScoped<IDataInitializer, DataInitializer>();
             builder.Services.AddDbContext<StoreDbContext>(Option =>
             {
                 Option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -26,6 +29,13 @@ namespace E_Commerce.Web
             #endregion
 
             var app = builder.Build();
+
+            #region DataSeeding-Apply Migration
+
+            app.MigrateDatabase();
+            app.SeedDatabase();
+
+            #endregion
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
