@@ -20,33 +20,33 @@ namespace E_Commerce.Persistence.Data.DataSeeding
         {
             _dbContext = dbContext;
         }
-        public void Initialize()
+        public async Task InitializeAsync()
         {
             try
             {
-                var HasProducts =_dbContext.Products.Any();
-                var HasBrands = _dbContext.ProductBrands.Any();
-                var HasTypes = _dbContext.ProductTypes.Any();
+                var HasProducts =await _dbContext.Products.AnyAsync();
+                var HasBrands =await _dbContext.ProductBrands.AnyAsync();
+                var HasTypes = await _dbContext.ProductTypes.AnyAsync();
 
                 if (HasProducts && HasBrands && HasTypes) return;
 
                 if (!HasTypes)
                 {
-                    SeedDataFromJSON<ProductType, int>("types.json", _dbContext.ProductTypes);
+                  await SeedDataFromJSONAsync<ProductType, int>("types.json", _dbContext.ProductTypes);
                 }
 
                 if (!HasBrands)
                 {
-                    SeedDataFromJSON<ProductBrand, int>("brands.json", _dbContext.ProductBrands);
+                   await SeedDataFromJSONAsync<ProductBrand, int>("brands.json", _dbContext.ProductBrands);
                 }
 
-                _dbContext.SaveChanges();
+              await  _dbContext.SaveChangesAsync();
                 if (!HasProducts)
                 {
-                    SeedDataFromJSON<Product, int>("products.json", _dbContext.Products);
+                   await SeedDataFromJSONAsync<Product, int>("products.json", _dbContext.Products);
                 }
 
-
+                await _dbContext.SaveChangesAsync();
 
             }
             catch (Exception ex)
@@ -55,7 +55,7 @@ namespace E_Commerce.Persistence.Data.DataSeeding
 
             }
         }
-        private void SeedDataFromJSON<T, TKey>(string FileName, DbSet<T> dbset) where T : BaseEntity<TKey> {
+        private async Task SeedDataFromJSONAsync<T, TKey>(string FileName, DbSet<T> dbset) where T : BaseEntity<TKey> {
 
             //D:\sevo ass\Backend.Net\ASP.Net API\E Commerce.WebSolution\E Commerce.Persistence\Data\DataSeeding\JSONFiles\brands.json
 
@@ -64,8 +64,8 @@ namespace E_Commerce.Persistence.Data.DataSeeding
 
             try
             {
-                using var DataStrams=File.OpenRead(FilePath);
-                var Data = JsonSerializer.Deserialize<List<T>>(DataStrams, new JsonSerializerOptions
+                using var DataStrams= File.OpenRead(FilePath);
+                var Data =await  JsonSerializer.DeserializeAsync<List<T>>(DataStrams, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
 
@@ -73,7 +73,7 @@ namespace E_Commerce.Persistence.Data.DataSeeding
                 });
                 if (Data != null)
                 { 
-                dbset.AddRange(Data);
+                await dbset.AddRangeAsync(Data);
                 }
 
 
