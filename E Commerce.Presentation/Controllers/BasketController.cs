@@ -11,7 +11,7 @@ namespace E_Commerce.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    internal class BasketController:ControllerBase
+    internal class BasketController: ApiBaseController
     {
         private readonly IBasketService _basketService;
 

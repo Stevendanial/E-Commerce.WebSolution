@@ -30,8 +30,7 @@ namespace E_Commerce.Web.CustomMiddleWares
 
                 var Problem = new ProblemDetails()
                 {
-                    Title = "An UnExpectedErrorOccured",
-                    
+                    Title = "AnUnExpectedErrorOccured",
                     Detail = ex.Message,
                     Instance = httpContext.Request.Path,
                     Status = ex switch {
@@ -48,7 +47,7 @@ namespace E_Commerce.Web.CustomMiddleWares
 
         private static async Task HandleNotFoundEndPointAsync(HttpContext httpContext)
         {
-            if (httpContext.Response.StatusCode == StatusCodes.Status404NotFound)
+            if (httpContext.Response.StatusCode == StatusCodes.Status404NotFound&&!httpContext.Response.HasStarted)
             {
                 var Problem = new ProblemDetails()
                 {

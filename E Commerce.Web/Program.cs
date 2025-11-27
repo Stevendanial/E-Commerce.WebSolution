@@ -1,7 +1,10 @@
 
 using E_Commerce.Domain.Contracts;
+using E_Commerce.Domain.Entites.IdentityModule;
 using E_Commerce.Persistence.Data.DataSeeding;
 using E_Commerce.Persistence.Data.DbContexts;
+using E_Commerce.Persistence.IdentityData.DataSeed;
+using E_Commerce.Persistence.IdentityData.DbContext;
 using E_Commerce.Persistence.Repositories;
 using E_Commerce.Service.Abstraction;
 using E_Commerce.Services;
@@ -9,6 +12,8 @@ using E_Commerce.Services.MappingProfiles;
 using E_Commerce.Web.CustomMiddleWares;
 using E_Commerce.Web.Extenstion;
 using E_Commerce.Web.Factories;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +34,9 @@ namespace E_Commerce.Web
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddScoped<IDataInitializer, DataInitializer>();
+            builder.Services.AddKeyedScoped<IDataInitializer, DataInitializer>("Default");
+            builder.Services.AddKeyedScoped<IDataInitializer, IdentityDataIntializer>("Identity");
+
             builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
             builder.Services.AddDbContext<StoreDbContext>(Option =>
             {
@@ -50,7 +57,8 @@ namespace E_Commerce.Web
             builder.Services.AddScoped<IBasketRepository, BasketRepository>();
             builder.Services.AddScoped<IBasketService, BasketService>();
             builder.Services.AddScoped<ICacheService, CacheService>();
-            builder.Services.AddScoped<ICacheService,CacheService>();
+            //  builder.Services.AddScoped<ICacheService,CacheService>();
+            builder.Services.AddScoped<Service.Abstraction.IAuthenticationService, Services.AuthenticationService>();
 
             builder.Services.Configure<ApiBehaviorOptions>(
                 options=>
@@ -58,23 +66,33 @@ namespace E_Commerce.Web
                     options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
 
                 });
-            
-            
-            
-            
-            
+            builder.Services.AddMemoryCache();
+
+
+            builder.Services.AddDbContext<StoreIdentityDbContext>(options=>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
+            });
+
+            builder.Services.AddIdentityCore<ApplicationUser>()
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<StoreIdentityDbContext>();
+
+           
             #endregion
 
             var app = builder.Build();
 
             #region DataSeeding-Apply Migration
-
+           await app.MigrateIdentityDatabaseAsync();
             await app.MigrateDatabaseAsync();
            await app.SeedDatabaseAsync();
+            await app.SeedIdentityDatabaseAsync();
+            
 
             #endregion
 
-           
+
 
             app.UseMiddleware<ExceptionHandlerMiddleWare>();
             // Configure the HTTP request pipeline.
