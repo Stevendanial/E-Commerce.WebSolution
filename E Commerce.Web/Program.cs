@@ -13,11 +13,14 @@ using E_Commerce.Web.CustomMiddleWares;
 using E_Commerce.Web.Extenstion;
 using E_Commerce.Web.Factories;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace E_Commerce.Web
@@ -78,7 +81,33 @@ namespace E_Commerce.Web
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<StoreIdentityDbContext>();
 
-           
+          
+            
+            
+            builder.Services.AddAuthentication(Option =>
+            {
+                Option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                Option.DefaultChallengeScheme= JwtBearerDefaults.AuthenticationScheme;
+
+
+            }).AddJwtBearer(Options=>
+            {
+                Options.SaveToken= true;
+
+                Options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    //ValidIssuers = builder.Configuration["JWTOptions:Issuer"],
+                    ValidIssuers = new[] { builder.Configuration["JWTOptions:Issuer"] },
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTOptions:SecretKey"]))
+
+
+                };
+            });
+
+
             #endregion
 
             var app = builder.Build();
@@ -106,6 +135,7 @@ namespace E_Commerce.Web
             app.UseHttpsRedirection();
             app.UseStaticFiles();   
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();

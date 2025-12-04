@@ -1,4 +1,6 @@
 ﻿using E_Commerce.Service.Abstraction;
+using E_Commerce.Shared.CommonResult;
+using E_Commerce.Shared.DTOs.IdentityDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +18,15 @@ namespace E_Commerce.Services
         {
             _cacheRepository = cacheRepository;
         }
+
+        
+
         public async Task<string?> GetAsync(string Cachekey)
         {
             return await _cacheRepository.GetAsync( Cachekey );
         }
+
+       
 
         public async Task SetAsync(string Cachekey, object CacheValue, TimeSpan TimeToLive)
         {

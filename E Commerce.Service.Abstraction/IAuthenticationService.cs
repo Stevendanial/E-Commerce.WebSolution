@@ -18,5 +18,11 @@ namespace E_Commerce.Service.Abstraction
         // email, password,userName,displayName, phoneno=>token ,displayName, email
 
         Task<Result<UserDTO>> RegisterAsync(RegisterDTO registerDTO);
+
+        Task<bool> CheckEmailAsync(string Email);
+
+        Task<Result<UserDTO>> GeyUserByEmailAsync(string Email);
+
+
     }
 }
